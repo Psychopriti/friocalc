@@ -1,4 +1,4 @@
-const CACHE_NAME = "friocalc-v7";
+const CACHE_NAME = "friocalc-v8";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,7 +7,9 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./marenco-trading-logo.png",
   "./Native/Assets/friocalc-logo.png",
-  "./Native/Assets/friocalc-icon.png"
+  "./Native/Assets/friocalc-icon.png",
+  "./Native/Assets/friocalc-icon-192.png",
+  "./Native/Assets/friocalc-icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
