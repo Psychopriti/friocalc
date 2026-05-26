@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ed1c24" />
+    <title>FRIOCALC</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="Native/Assets/friocalc-icon.png" />
+    <link rel="apple-touch-icon" href="Native/Assets/friocalc-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="splash" id="splash">
+      <div class="splash-card">
+        <img src="marenco-trading-logo.png" alt="Marenco Trading" />
+        <img src="Native/Assets/friocalc-logo.png" alt="FRIOCALC" />
+        <strong>made by JM</strong>
+      </div>
+    </div>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <img src="Native/Assets/friocalc-logo.png" alt="FRIOCALC" />
+          <p>Calculadora de seleccion para cuarto frio</p>
+        </div>
+        <span>made by JM</span>
+      </header>
+
+      <section class="input-panel">
+        <div class="segment-row" aria-label="Modo de calculo">
+          <button class="seg active" type="button" data-mode="dimensions">Ingresar medidas</button>
+          <button class="seg" type="button" data-mode="volume">Ingresar volumen</button>
+        </div>
+
+        <form id="calculator" class="calculator">
+          <div class="usage-row">
+            <label class="usage-card active">
+              <input type="radio" name="usage" value="enfriamiento" checked />
+              <span>Enfriamiento</span>
+              <small>Conservacion</small>
+            </label>
+            <label class="usage-card">
+              <input type="radio" name="usage" value="congelacion" />
+              <span>Congelacion</span>
+              <small>Baja temperatura</small>
+            </label>
+          </div>
+
+          <div class="input-grid" id="dimensions-panel">
+            <label>
+              <span>Largo</span>
+              <input id="length" type="number" min="0" step="0.01" value="0" inputmode="decimal" />
+              <em>m</em>
+            </label>
+            <label>
+              <span>Ancho</span>
+              <input id="width" type="number" min="0" step="0.01" value="0" inputmode="decimal" />
+              <em>m</em>
+            </label>
+            <label>
+              <span>Altura</span>
+              <input id="height" type="number" min="0" step="0.01" value="0" inputmode="decimal" />
+              <em>m</em>
+            </label>
+          </div>
+
+          <div class="input-grid single hidden" id="volume-panel">
+            <label>
+              <span>Volumen del cuarto</span>
+              <input id="direct-volume" type="number" min="0" step="0.01" value="0" inputmode="decimal" />
+              <em>m3</em>
+            </label>
+          </div>
+        </form>
+      </section>
+
+      <section class="dashboard">
+        <section class="capacity-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Equipo</p>
+              <h1>Resultado recomendado</h1>
+            </div>
+            <button class="ghost-button" type="button" id="reset-button">Restablecer</button>
+          </div>
+
+          <div class="metric-grid">
+            <article>
+              <span>Volumen</span>
+              <strong id="volume-output">0 m3</strong>
+            </article>
+            <article>
+              <span>Condensador</span>
+              <strong id="hp-output">0 HP</strong>
+            </article>
+            <article>
+              <span>Evaporador</span>
+              <strong id="btu-output">0 BTU</strong>
+            </article>
+          </div>
+
+          <div class="reference-card">
+            <span id="match-label">Seleccion inmediata superior</span>
+            <strong id="room-output">--</strong>
+            <small id="range-output">--</small>
+          </div>
+          <p class="status-note" id="status-note"></p>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Paneles</p>
+              <h2>Calculadora de cortes</h2>
+            </div>
+            <div class="export-box">
+              <label>
+                <input type="checkbox" id="include-power" checked />
+                Incluir potencia
+              </label>
+              <button class="export-button" type="button" id="export-report">Exportar Excel</button>
+            </div>
+          </div>
+
+          <div class="panel-summary">
+            <article class="panel-total">
+              <span>Total a comprar</span>
+              <strong id="panel-total">--</strong>
+              <small>Paneles de 12m x 1m</small>
+            </article>
+            <article>
+              <span>Paredes</span>
+              <strong id="wall-cuts">--</strong>
+              <small id="wall-detail">--</small>
+            </article>
+            <article>
+              <span>Techo recomendado</span>
+              <strong id="roof-choice">--</strong>
+              <small id="roof-detail">--</small>
+            </article>
+            <article>
+              <span>Desperdicio</span>
+              <strong id="waste-total">--</strong>
+              <small>Metros lineales sobrantes</small>
+            </article>
+          </div>
+
+          <div class="panel-content">
+            <div class="room-preview" id="room-preview" aria-label="Vista de paneles"></div>
+            <div class="panel-cards" id="panel-cards"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

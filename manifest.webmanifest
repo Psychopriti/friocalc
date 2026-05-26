@@ -1,0 +1,19 @@
+{
+  "name": "FRIOCALC",
+  "short_name": "FRIOCALC",
+  "description": "Calculadora de seleccion de equipos y paneles para cuarto frio.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f7f9",
+  "theme_color": "#ed1c24",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "Native/Assets/friocalc-icon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
