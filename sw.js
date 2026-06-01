@@ -1,4 +1,4 @@
-const CACHE_NAME = "friocalc-v8";
+const CACHE_NAME = "friocalc-v9";
 const ASSETS = [
   "./",
   "./index.html",

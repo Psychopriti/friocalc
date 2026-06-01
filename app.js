@@ -130,7 +130,21 @@ function roundUp(value) {
   return Math.ceil(value);
 }
 
-function packCuts(cuts) {
+function roundUpTenths(value) {
+  return Math.ceil(value * 10) / 10;
+}
+
+function makePanel(cuts, section) {
+  const used = cuts.reduce((sum, cut) => sum + cut.length, 0);
+  return {
+    cuts,
+    section,
+    used,
+    waste: Math.max(0, 12 - used),
+  };
+}
+
+function packCuts(cuts, section) {
   const panels = [];
   const sorted = [...cuts].sort((a, b) => b.length - a.length);
 
@@ -147,7 +161,7 @@ function packCuts(cuts) {
     });
 
     if (!best) {
-      best = { cuts: [], used: 0 };
+      best = { cuts: [], used: 0, section };
       panels.push(best);
     }
 
@@ -157,6 +171,7 @@ function packCuts(cuts) {
 
   return panels.map((panel) => ({
     ...panel,
+    section,
     waste: Math.max(0, 12 - panel.used),
   }));
 }
@@ -165,11 +180,15 @@ function buildPlan(length, width, height, roofCutLength, roofCutCount, orientati
   const lengthCuts = roundUp(length);
   const widthCuts = roundUp(width);
   const wallCuts = (lengthCuts * 2) + (widthCuts * 2);
-  const cuts = [
-    ...Array.from({ length: wallCuts }, () => ({ length: height, kind: "Pared" })),
-    ...Array.from({ length: roofCutCount }, () => ({ length: roofCutLength, kind: "Techo" })),
-  ];
-  const panels = packCuts(cuts);
+  const roofCuts = Array.from({ length: roofCutCount }, () => ({ length: roofCutLength, kind: "Techo" }));
+  const roofPanels = packCuts(roofCuts, "Techo");
+  const wallLinear = wallCuts * height;
+  const wallPanelCount = Math.ceil(wallLinear / 12);
+  const wallPanels = Array.from({ length: wallPanelCount }, (_, index) => {
+    const used = index === wallPanelCount - 1 ? wallLinear - (12 * index) : 12;
+    return makePanel([{ length: used, kind: "Paredes" }], "Paredes");
+  });
+  const panels = [...roofPanels, ...wallPanels];
   const totalUsed = panels.reduce((sum, panel) => sum + panel.used, 0);
 
   return {
@@ -180,6 +199,9 @@ function buildPlan(length, width, height, roofCutLength, roofCutCount, orientati
     widthCuts,
     roofCutLength,
     roofCutCount,
+    roofPanels: roofPanels.length,
+    wallLinear,
+    wallPanelCount,
     totalUsed,
     totalWaste: (panels.length * 12) - totalUsed,
   };
@@ -188,6 +210,8 @@ function buildPlan(length, width, height, roofCutLength, roofCutCount, orientati
 function betterPlan(a, b) {
   if (a.panels.length !== b.panels.length) return a.panels.length < b.panels.length ? a : b;
   if (a.totalWaste !== b.totalWaste) return a.totalWaste < b.totalWaste ? a : b;
+  if (a.roofPanels !== b.roofPanels) return a.roofPanels < b.roofPanels ? a : b;
+  if (a.roofCutCount !== b.roofCutCount) return a.roofCutCount < b.roofCutCount ? a : b;
   if (a.roofCutLength !== b.roofCutLength) return a.roofCutLength < b.roofCutLength ? a : b;
   return a;
 }
@@ -200,8 +224,8 @@ function getPanelPlan() {
   const height = toNumber(els.height.value);
   if (!length || !width || !height) return null;
 
-  const widthRoof = buildPlan(length, width, height, roundUp(width), roundUp(length), "A lo ancho");
-  const lengthRoof = buildPlan(length, width, height, roundUp(length), roundUp(width), "A lo largo");
+  const widthRoof = buildPlan(length, width, height, roundUpTenths(width), roundUp(length), "A lo ancho");
+  const lengthRoof = buildPlan(length, width, height, roundUpTenths(length), roundUp(width), "A lo largo");
   return {
     length,
     width,
@@ -231,7 +255,7 @@ function renderPanelCards(plan) {
     return `
       <article class="cut-card">
         <div class="cut-card-top">
-          <strong>Panel ${index + 1}</strong>
+          <strong>Panel ${index + 1} - ${panel.section}</strong>
           <span>${usedPercent}% usado</span>
         </div>
         <p>${describeCuts(panel.cuts)}</p>
@@ -309,9 +333,9 @@ function renderPanelSummary(plan) {
   state.panelPlan = plan;
   els.panelTotal.textContent = `${plan.panels.length}`;
   els.wallCuts.textContent = `${plan.wallCuts} cortes de ${formatMeters(plan.height)} m`;
-  els.wallDetail.textContent = `Largo: ${plan.lengthCuts} por lado | Ancho: ${plan.widthCuts} por lado`;
+  els.wallDetail.textContent = `Largo: ${plan.lengthCuts} por lado | Ancho: ${plan.widthCuts} por lado | ${formatMeters(plan.wallLinear)} m en ${plan.wallPanelCount} paneles`;
   els.roofChoice.textContent = plan.orientation;
-  els.roofDetail.textContent = `${plan.roofCutCount} cortes de ${formatMeters(plan.roofCutLength)} m`;
+  els.roofDetail.textContent = `${plan.roofCutCount} cortes de ${formatMeters(plan.roofCutLength)} m en ${plan.roofPanels} panel(es)`;
   els.wasteTotal.textContent = `${formatMeters(plan.totalWaste)} m`;
   renderPanelCards(plan);
   renderRoomPreview(plan);
@@ -389,6 +413,7 @@ function exportExcel() {
   const rows = plan.panels.map((panel, index) => `
     <tr>
       <td>${index + 1}</td>
+      <td>${escapeHtml(panel.section)}</td>
       <td>${escapeHtml(describeCuts(panel.cuts))}</td>
       <td>${formatMeters(panel.used)}</td>
       <td>${formatMeters(panel.waste)}</td>
@@ -430,13 +455,13 @@ function exportExcel() {
           <tr><td>Ancho</td><td>${formatMeters(plan.width)} m</td></tr>
           <tr><td>Altura</td><td>${formatMeters(plan.height)} m</td></tr>
           <tr><td>Total paneles</td><td>${plan.panels.length}</td></tr>
-          <tr><td>Paredes</td><td>${plan.wallCuts} cortes de ${formatMeters(plan.height)} m</td></tr>
-          <tr><td>Techo recomendado</td><td>${plan.orientation}: ${plan.roofCutCount} cortes de ${formatMeters(plan.roofCutLength)} m</td></tr>
+          <tr><td>Paredes</td><td>${plan.wallCuts} cortes de ${formatMeters(plan.height)} m = ${formatMeters(plan.wallLinear)} m en ${plan.wallPanelCount} paneles</td></tr>
+          <tr><td>Techo recomendado</td><td>${plan.orientation}: ${plan.roofCutCount} cortes de ${formatMeters(plan.roofCutLength)} m en ${plan.roofPanels} panel(es)</td></tr>
           <tr><td>Desperdicio total</td><td>${formatMeters(plan.totalWaste)} m</td></tr>
         </table>
         <h2>Desglose por panel</h2>
         <table>
-          <tr><th>Panel</th><th>Cortes</th><th>Usado m</th><th>Sobrante m</th></tr>
+          <tr><th>Panel</th><th>Area</th><th>Cortes</th><th>Usado m</th><th>Sobrante m</th></tr>
           ${rows}
         </table>
         ${powerBlock}
